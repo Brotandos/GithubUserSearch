@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">GithubUserSearch</string>
+    <string name="facebook_app_id">2487383838202333</string>
+    <string name="fb_login_protocol_scheme">fb2487383838202333</string>
+    <string name="logout">Logout</string>
+    <string name="empty"/>
+    <string name="web_client_id">92006964306-jaqk0ds8sou8mmvb0bvsh6qdbt0m7lmr.apps.googleusercontent.com</string>
+</resources>
