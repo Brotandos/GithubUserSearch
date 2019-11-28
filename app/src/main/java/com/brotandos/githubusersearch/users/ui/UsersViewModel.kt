@@ -1,12 +1,12 @@
-package com.brotandos.githubusersearch.users
+package com.brotandos.githubusersearch.users.ui
 
 import android.os.Handler
 import android.os.Looper
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.brotandos.githubusersearch.users.repository.UsersRepository
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.Completable
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
@@ -17,20 +17,24 @@ import kotlin.math.ceil
 private const val SEARCH_TIMEOUT = 600L
 private const val SEARCH_STARTING_PAGE = 1
 
-private const val ELEMENTS_PER_PAGE = UsersRepository.ELEMENTS_PER_PAGE
+private const val ELEMENTS_PER_PAGE =
+    UsersRepository.ELEMENTS_PER_PAGE
 
 class UsersViewModel(
     private val usersView: UsersView,
     private val needToLoadMoreRelay: BehaviorRelay<Boolean>
 ) : ViewModel() {
 
-    private val usersRepository = UsersRepository()
+    private val usersRepository =
+        UsersRepository()
 
     private val compositeDisposable = CompositeDisposable()
 
     private val queryRelay = BehaviorRelay.createDefault("")
 
     private var itemsLength = 0
+
+    private var lastLoadedUserId = 0
 
     private val nextSearchPageNumber
         get() = ceil(itemsLength / ELEMENTS_PER_PAGE.toDouble()).toInt() + SEARCH_STARTING_PAGE
@@ -61,7 +65,7 @@ class UsersViewModel(
                 Handler(Looper.getMainLooper()).post { usersView.onLoadingStarted() }
                 val query = queryRelay.value
                 val single = if (query.isEmpty()) {
-                    usersRepository.getUsers(itemsLength)
+                    usersRepository.getUsers(lastLoadedUserId)
                 } else {
                     println("next page: $nextSearchPageNumber")
                     usersRepository.searchUsers(query, nextSearchPageNumber)
@@ -77,6 +81,7 @@ class UsersViewModel(
                     } else {
                         usersView.showUsers(users)
                         itemsLength += users.size
+                        lastLoadedUserId = users.lastOrNull()?.id ?: lastLoadedUserId
                     }
                     usersView.onLoadingFinished()
                     needToLoadMoreRelay.accept(false)
@@ -136,6 +141,9 @@ class UsersViewModel(
     ) : ViewModelProvider.Factory {
 
         override fun <T : ViewModel?> create(modelClass: Class<T>): T =
-            UsersViewModel(usersView, needToLoadMoreRelay) as T
+            UsersViewModel(
+                usersView,
+                needToLoadMoreRelay
+            ) as T
     }
 }

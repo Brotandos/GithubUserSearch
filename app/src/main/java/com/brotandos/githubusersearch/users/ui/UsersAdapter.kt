@@ -1,8 +1,7 @@
-package com.brotandos.githubusersearch.users.adapter
+package com.brotandos.githubusersearch.users.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.brotandos.githubusersearch.R
 import com.brotandos.githubusersearch.users.entity.User
@@ -21,7 +20,9 @@ class UsersAdapter : RecyclerView.Adapter<UsersAdapter.UserViewHolder>() {
     val needToLoadMoreRelay: BehaviorRelay<Boolean> = BehaviorRelay.createDefault(false)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
-        UserViewHolder(parent)
+        UserViewHolder(
+            parent
+        )
 
     override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
         holder.bind(users[position])

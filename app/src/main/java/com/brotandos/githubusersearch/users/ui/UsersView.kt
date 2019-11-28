@@ -1,4 +1,4 @@
-package com.brotandos.githubusersearch.users
+package com.brotandos.githubusersearch.users.ui
 
 import com.brotandos.githubusersearch.users.entity.User
 

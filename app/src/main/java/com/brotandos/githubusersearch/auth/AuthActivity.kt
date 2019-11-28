@@ -4,7 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.brotandos.githubusersearch.users.UsersActivity
+import com.brotandos.githubusersearch.users.ui.UsersActivity
 import com.brotandos.githubusersearch.R
 import com.brotandos.githubusersearch.common.startActivity
 import com.google.android.gms.auth.api.signin.GoogleSignIn

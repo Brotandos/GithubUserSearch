@@ -11,7 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".users.UsersActivity">
+        tools:context=".users.ui.UsersActivity">
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/searchQueryLayout"
@@ -39,7 +39,7 @@
             app:layout_constraintBottom_toTopOf="@id/progressBar"
             tools:listitem="@layout/item_user"
             tools:itemCount="32"
-            tools:context=".users.adapter.UsersAdapter" />
+            tools:context=".users.ui.UsersAdapter" />
 
         <ProgressBar
             android:id="@+id/progressBar"

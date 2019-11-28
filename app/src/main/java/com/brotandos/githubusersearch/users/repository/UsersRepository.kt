@@ -1,10 +1,8 @@
-package com.brotandos.githubusersearch.users
+package com.brotandos.githubusersearch.users.repository
 
 import com.brotandos.githubusersearch.common.GithubClient
 import com.brotandos.githubusersearch.users.entity.User
 import io.reactivex.Single
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory
@@ -40,7 +38,9 @@ class UsersRepository {
             .map { it.body() ?: listOf() }
 
     fun searchUsers(word: String, page: Int): Single<List<User>> =
-        client.getUsersByLogin(getQueryPattern(word), page, ELEMENTS_PER_PAGE)
+        client.getUsersByLogin(getQueryPattern(word), page,
+            ELEMENTS_PER_PAGE
+        )
             .map {
                 it.body()?.items ?: listOf()
             }

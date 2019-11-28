@@ -1,4 +1,4 @@
-package com.brotandos.githubusersearch.users
+package com.brotandos.githubusersearch.users.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -14,7 +14,6 @@ import com.brotandos.githubusersearch.R
 import com.brotandos.githubusersearch.auth.AuthActivity
 import com.brotandos.githubusersearch.common.setClearable
 import com.brotandos.githubusersearch.common.startActivity
-import com.brotandos.githubusersearch.users.adapter.UsersAdapter
 import com.brotandos.githubusersearch.users.entity.User
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
@@ -32,14 +31,18 @@ import kotlinx.android.synthetic.main.layout_nav_header.view.profileImageView
 
 private const val SCROLL_DIRECTION_DOWN = 1
 
-class UsersActivity : AppCompatActivity(R.layout.activity_users), UsersView {
+class UsersActivity : AppCompatActivity(R.layout.activity_users),
+    UsersView {
 
     private val adapter = UsersAdapter()
 
     private val usersViewModel by lazy {
         ViewModelProviders.of(
             this,
-            UsersViewModel.Factory(this, adapter.needToLoadMoreRelay)
+            UsersViewModel.Factory(
+                this,
+                adapter.needToLoadMoreRelay
+            )
         )[UsersViewModel::class.java]
     }
 
