@@ -5,4 +5,9 @@
     <string name="logout">Logout</string>
     <string name="empty"/>
     <string name="web_client_id">92006964306-jaqk0ds8sou8mmvb0bvsh6qdbt0m7lmr.apps.googleusercontent.com</string>
+    <string name="update_refresh">refresh</string>
+    <string name="action_reload_page">Reload</string>
+    <string name="action_refresh">Refresh</string>
+    <string name="empty_users_loaded">There\'s no users to load now. Try to pull or refresh later</string>
+    <string name="search_users">Search users</string>
 </resources>

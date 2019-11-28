@@ -4,9 +4,15 @@ import com.brotandos.githubusersearch.users.entity.User
 
 interface UsersView {
 
-    fun clearUsers()
+    fun onLoadingStarted()
+
+    fun onLoadingFinished()
 
     fun showUsers(users: List<User>)
+
+    fun clearUsers()
+
+    fun onEmptyUsersLoaded()
 
     fun onError(reason: String, throwable: Throwable)
 }

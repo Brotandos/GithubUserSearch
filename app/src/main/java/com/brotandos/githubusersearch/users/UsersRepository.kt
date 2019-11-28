@@ -37,11 +37,13 @@ class UsersRepository {
 
     fun getUsers(offset: Int): Single<List<User>> =
         client.getUsers(offset)
-            .map { it.body() }
+            .map { it.body() ?: listOf() }
 
     fun searchUsers(word: String, page: Int): Single<List<User>> =
         client.getUsersByLogin(getQueryPattern(word), page, ELEMENTS_PER_PAGE)
-            .map { it.body()?.items }
+            .map {
+                it.body()?.items ?: listOf()
+            }
 
     private fun getQueryPattern(word: String) = "$word $QUERY_LOGIN_KEYWORD"
 }

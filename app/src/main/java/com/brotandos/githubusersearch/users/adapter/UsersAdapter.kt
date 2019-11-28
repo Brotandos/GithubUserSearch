@@ -1,74 +1,61 @@
 package com.brotandos.githubusersearch.users.adapter
 
+import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.collection.SparseArrayCompat
 import androidx.recyclerview.widget.RecyclerView
+import com.brotandos.githubusersearch.R
 import com.brotandos.githubusersearch.users.entity.User
+import com.jakewharton.rxrelay2.BehaviorRelay
+import com.squareup.picasso.Picasso
+import kotlinx.android.synthetic.main.item_user.view.avatarImageView
+import kotlinx.android.synthetic.main.item_user.view.nameTextView
 
-class UsersAdapter : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+private const val MAX_VISIBLE_ITEMS_COUNT = 6
+private const val START_LOADING_THRESHOLD = 5
 
-    private val items = mutableListOf<ViewType>()
+class UsersAdapter : RecyclerView.Adapter<UsersAdapter.UserViewHolder>() {
 
-    private val delegateAdapters = SparseArrayCompat<ViewTypeDelegateAdapter>()
+    private val users = mutableListOf<User>()
 
-    init {
-        delegateAdapters.put(
-            LoadingDelegateAdapter.VIEW_TYPE_ID,
-            LoadingDelegateAdapter()
-        )
-        delegateAdapters.put(
-            UsersDelegateAdapter.VIEW_TYPE_ID,
-            UsersDelegateAdapter()
-        )
-        items += LoadingViewType
+    val needToLoadMoreRelay: BehaviorRelay<Boolean> = BehaviorRelay.createDefault(false)
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) =
+        UserViewHolder(parent)
+
+    override fun onBindViewHolder(holder: UserViewHolder, position: Int) {
+        holder.bind(users[position])
+        val itemsSize = users.size
+        if (itemsSize > MAX_VISIBLE_ITEMS_COUNT && position >= itemsSize - START_LOADING_THRESHOLD) {
+            needToLoadMoreRelay.accept(true)
+        }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder =
-        delegateAdapters[viewType]?.onCreateViewHolder(parent)
-            ?: throw IllegalStateException("viewType with value $viewType is not registered in delegateAdapters")
-
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        val viewType = getItemViewType(position)
-        delegateAdapters[viewType]?.onBindViewHolder(holder, items[position])
-            ?: throw IllegalStateException("viewType with value $viewType is not registered in delegateAdapters")
-    }
-
-    override fun getItemViewType(position: Int): Int =
-        items[position].viewTypeId
-
-    override fun getItemCount(): Int = items.size
+    override fun getItemCount(): Int = users.size
 
     fun addUsers(loadedUsers: List<User>) {
-        if (loadedUsers.isEmpty()) {
-            items.remove(LoadingViewType)
-            return notifyItemRemoved(items.size)
-        }
-
-        val insertStartPosition = getInsertPosition()
-        val usersWasEmptyBefore = insertStartPosition == 0
-        val freshLoadedUsers = loadedUsers.map { UserViewType(it) }
-        items.addAll(insertStartPosition, freshLoadedUsers)
-        when ((freshLoadedUsers.size == 1) to usersWasEmptyBefore) {
-            true to true -> { // Only 1 element added
-                items.remove(LoadingViewType)
-                notifyDataSetChanged()
-            }
-            false to true -> // keep scroll in top if first time in current page loaded
-                notifyDataSetChanged()
-
-            true to false,
-            false to false -> // keep scroll in current position
-                notifyItemRangeInserted(insertStartPosition, loadedUsers.size) // keep scroll in current position
-        }
+        val insertPosition = users.size
+        users.addAll(loadedUsers)
+        notifyItemRangeInserted(insertPosition, loadedUsers.size)
     }
 
-    private fun getInsertPosition() = items.indexOf(LoadingViewType)
-        .takeIf { it >= 0 }
-        ?: items.size
-
     fun clearUsers() {
-        items.clear()
-        items += LoadingViewType
+        users.clear()
         notifyDataSetChanged()
+    }
+
+    class UserViewHolder(parent: ViewGroup) : RecyclerView.ViewHolder(
+        LayoutInflater.from(parent.context).inflate(R.layout.item_user, parent, false)
+    ) {
+        private val nameTextView = itemView.nameTextView
+        private val avatarImageView = itemView.avatarImageView
+
+        fun bind(user: User) {
+            nameTextView.text = user.login
+            Picasso
+                .get()
+                .load(user.avatarUrl)
+                .into(avatarImageView)
+        }
     }
 }
