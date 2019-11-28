@@ -15,4 +15,6 @@ interface UsersView {
     fun onEmptyUsersLoaded()
 
     fun onError(reason: String, throwable: Throwable)
+
+    fun onFacebookTokenExpired()
 }

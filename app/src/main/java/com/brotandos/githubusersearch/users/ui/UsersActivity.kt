@@ -1,5 +1,6 @@
 package com.brotandos.githubusersearch.users.ui
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
@@ -12,9 +13,12 @@ import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.RecyclerView
 import com.brotandos.githubusersearch.R
 import com.brotandos.githubusersearch.auth.AuthActivity
+import com.brotandos.githubusersearch.auth.Profile
 import com.brotandos.githubusersearch.common.setClearable
 import com.brotandos.githubusersearch.common.startActivity
 import com.brotandos.githubusersearch.users.entity.User
+import com.facebook.AccessToken
+import com.facebook.login.LoginManager
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -28,11 +32,48 @@ import kotlinx.android.synthetic.main.activity_users.usersRecyclerView
 import kotlinx.android.synthetic.main.layout_nav_header.view.emailTextView
 import kotlinx.android.synthetic.main.layout_nav_header.view.logoutButton
 import kotlinx.android.synthetic.main.layout_nav_header.view.profileImageView
+import kotlinx.android.synthetic.main.layout_nav_header.view.profileNameTextView
 
 private const val SCROLL_DIRECTION_DOWN = 1
+private const val EXTRA_PROFILE_NAME = "EXTRA_PROFILE_NAME"
+private const val EXTRA_PROFILE_LINK = "EXTRA_PROFILE_LINK"
+private const val EXTRA_PHOTO_LINK = "EXTRA_PHOTO_LINK"
 
-class UsersActivity : AppCompatActivity(R.layout.activity_users),
-    UsersView {
+class UsersActivity : AppCompatActivity(R.layout.activity_users), UsersView {
+
+    companion object {
+        fun start(
+            context: Context,
+            profileName: String?,
+            profileLink: String? = null,
+            photoLink: String? = null
+        ) {
+            val intent = Intent(context, UsersActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+            intent.putExtra(EXTRA_PROFILE_NAME, profileName)
+            profileLink?.let { intent.putExtra(EXTRA_PROFILE_LINK, it) }
+            photoLink?.let { intent.putExtra(EXTRA_PHOTO_LINK, it) }
+            context.startActivity(intent)
+        }
+    }
+
+    private val profileName: String? by lazy {
+        intent.getStringExtra(EXTRA_PROFILE_NAME)
+            ?: GoogleSignIn.getLastSignedInAccount(this)?.displayName
+            ?: com.facebook.Profile.getCurrentProfile()?.name
+    }
+
+    private val profileLink: String? by lazy {
+        intent.getStringExtra(EXTRA_PROFILE_LINK)
+            ?: GoogleSignIn.getLastSignedInAccount(this)?.email
+            ?: com.facebook.Profile.getCurrentProfile()?.linkUri?.toString()
+    }
+
+    private val photoLink: String? by lazy {
+        intent.getStringExtra(EXTRA_PHOTO_LINK)
+            ?: GoogleSignIn.getLastSignedInAccount(this)?.photoUrl?.toString()
+            ?: com.facebook.Profile.getCurrentProfile()?.getProfilePictureUri(200, 200)?.toString()
+    }
 
     private val adapter = UsersAdapter()
 
@@ -66,8 +107,8 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val account = GoogleSignIn.getLastSignedInAccount(this) ?: return onLoggedOut()
-        initNavView(account)
+        usersViewModel.checkIfLoggedInFacebook()
+        initNavView()
         initDrawer()
         initSearchView()
         usersRecyclerView.adapter = adapter
@@ -93,43 +134,8 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users),
             ?: super.onOptionsItemSelected(item)
     }
 
-
-    private fun initNavView(account: GoogleSignInAccount) {
-        val headerView = navigationView.getHeaderView(0)
-        val emailTextView = headerView.emailTextView
-        val avatarImageView = headerView.profileImageView
-        headerView.logoutButton.setOnClickListener {
-            GoogleSignIn
-                .getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .signOut()
-                .addOnCompleteListener { onLoggedOut() }
-        }
-
-        account.email?.let(emailTextView::setText)
-        val photoUrl = account.photoUrl?.toString() ?: return
-        Picasso
-            .get()
-            .load(photoUrl)
-            .into(avatarImageView)
-    }
-
-    private fun initDrawer() {
-        drawerLayout.addDrawerListener(drawerToggle)
-        drawerToggle.syncState()
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-    }
-
-    private fun initSearchView() {
-        searchQueryEditText.addTextChangedListener {
-            if (it.isNullOrEmpty()) {
-                searchQueryEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
-                searchQueryEditText.setOnTouchListener { _, _ -> false }
-            } else {
-                searchQueryEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0)
-                searchQueryEditText.setClearable()
-            }
-            usersViewModel.onQueryEdited(it.toString())
-        }
+    override fun onFacebookTokenExpired() {
+        onLoggedOut()
     }
 
     override fun onLoadingStarted() = progressBar.setVisibility(View.VISIBLE)
@@ -159,6 +165,50 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users),
             .setAction(R.string.action_reload_page) {
                 usersViewModel.onRetryButtonClicked()
             }
+    }
+
+    private fun initNavView() {
+        val headerView = navigationView.getHeaderView(0)
+        val nameTextView = headerView.profileNameTextView
+        val emailTextView = headerView.emailTextView
+        val avatarImageView = headerView.profileImageView
+        headerView.logoutButton.setOnClickListener {
+            GoogleSignIn.getLastSignedInAccount(this)?.let {
+                GoogleSignIn
+                    .getClient(this, GoogleSignInOptions.DEFAULT_SIGN_IN)
+                    .signOut()
+                    .addOnCompleteListener { onLoggedOut() }
+            }
+
+            AccessToken.getCurrentAccessToken()?.let {
+                LoginManager.getInstance().logOut()
+            }
+        }
+
+        profileName?.let(nameTextView::setText)
+        profileLink?.let(emailTextView::setText)
+        photoLink?.let {
+            Picasso.get().load(it).into(avatarImageView)
+        }
+    }
+
+    private fun initDrawer() {
+        drawerLayout.addDrawerListener(drawerToggle)
+        drawerToggle.syncState()
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+    }
+
+    private fun initSearchView() {
+        searchQueryEditText.addTextChangedListener {
+            if (it.isNullOrEmpty()) {
+                searchQueryEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, 0, 0)
+                searchQueryEditText.setOnTouchListener { _, _ -> false }
+            } else {
+                searchQueryEditText.setCompoundDrawablesWithIntrinsicBounds(0, 0, R.drawable.ic_clear, 0)
+                searchQueryEditText.setClearable()
+            }
+            usersViewModel.onQueryEdited(it.toString())
+        }
     }
 
     private fun onLoggedOut() {

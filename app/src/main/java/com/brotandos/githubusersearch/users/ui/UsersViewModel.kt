@@ -5,6 +5,8 @@ import android.os.Looper
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.brotandos.githubusersearch.users.repository.UsersRepository
+import com.facebook.AccessToken
+import com.facebook.login.LoginManager
 import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.Completable
 import io.reactivex.android.schedulers.AndroidSchedulers
@@ -133,6 +135,13 @@ class UsersViewModel(
     override fun onCleared() {
         super.onCleared()
         compositeDisposable.dispose()
+    }
+
+    fun checkIfLoggedInFacebook() {
+        if (AccessToken.getCurrentAccessToken()?.isExpired == true) {
+            LoginManager.getInstance().logOut()
+            usersView.onFacebookTokenExpired()
+        }
     }
 
     class Factory(

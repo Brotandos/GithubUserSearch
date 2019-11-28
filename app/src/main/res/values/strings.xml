@@ -10,4 +10,7 @@
     <string name="action_refresh">Refresh</string>
     <string name="empty_users_loaded">There\'s no users to load now. Try to pull or refresh later</string>
     <string name="search_users">Search users</string>
+    <string name="login_error">Something went wrong while signing in</string>
+    <string name="facebook_sign_in_cancelled">Sign in cancelled</string>
+    <string name="profile_name_not_found">Profile name not found</string>
 </resources>

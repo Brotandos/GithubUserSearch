@@ -33,8 +33,8 @@ class UsersRepository {
             .create(GithubClient::class.java)
     }
 
-    fun getUsers(offset: Int): Single<List<User>> =
-        client.getUsers(offset)
+    fun getUsers(lastLoadedUserId: Int): Single<List<User>> =
+        client.getUsers(lastLoadedUserId)
             .map { it.body() ?: listOf() }
 
     fun searchUsers(word: String, page: Int): Single<List<User>> =
