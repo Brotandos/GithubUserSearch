@@ -3,6 +3,7 @@
     package="com.brotandos.githubusersearch">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.USE_FINGERPRINT" />
 
     <application
         android:allowBackup="true"
@@ -42,6 +43,14 @@
                 <data android:scheme="@string/fb_login_protocol_scheme" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".security.StorePasswordActivity"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".security.ShowPasswordActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

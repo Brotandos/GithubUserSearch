@@ -16,6 +16,7 @@ import com.brotandos.githubusersearch.auth.AuthActivity
 import com.brotandos.githubusersearch.auth.Profile
 import com.brotandos.githubusersearch.common.setClearable
 import com.brotandos.githubusersearch.common.startActivity
+import com.brotandos.githubusersearch.security.StorePasswordActivity
 import com.brotandos.githubusersearch.users.entity.User
 import com.facebook.AccessToken
 import com.facebook.login.LoginManager
@@ -29,10 +30,12 @@ import kotlinx.android.synthetic.main.activity_users.navigationView
 import kotlinx.android.synthetic.main.activity_users.progressBar
 import kotlinx.android.synthetic.main.activity_users.searchQueryEditText
 import kotlinx.android.synthetic.main.activity_users.usersRecyclerView
+import kotlinx.android.synthetic.main.layout_nav_header.securityAuthButton
 import kotlinx.android.synthetic.main.layout_nav_header.view.emailTextView
 import kotlinx.android.synthetic.main.layout_nav_header.view.logoutButton
 import kotlinx.android.synthetic.main.layout_nav_header.view.profileImageView
 import kotlinx.android.synthetic.main.layout_nav_header.view.profileNameTextView
+import kotlinx.android.synthetic.main.layout_nav_header.view.securityAuthButton
 
 private const val SCROLL_DIRECTION_DOWN = 1
 private const val EXTRA_PROFILE_NAME = "EXTRA_PROFILE_NAME"
@@ -45,34 +48,28 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users), UsersView {
         fun start(
             context: Context,
             profileName: String?,
-            profileLink: String? = null,
-            photoLink: String? = null
+            profileLink: String?,
+            photoLink: String?
         ) {
             val intent = Intent(context, UsersActivity::class.java)
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
             intent.putExtra(EXTRA_PROFILE_NAME, profileName)
-            profileLink?.let { intent.putExtra(EXTRA_PROFILE_LINK, it) }
-            photoLink?.let { intent.putExtra(EXTRA_PHOTO_LINK, it) }
+            profileLink.let { intent.putExtra(EXTRA_PROFILE_LINK, it) }
+            photoLink.let { intent.putExtra(EXTRA_PHOTO_LINK, it) }
             context.startActivity(intent)
         }
     }
 
     private val profileName: String? by lazy {
         intent.getStringExtra(EXTRA_PROFILE_NAME)
-            ?: GoogleSignIn.getLastSignedInAccount(this)?.displayName
-            ?: com.facebook.Profile.getCurrentProfile()?.name
     }
 
     private val profileLink: String? by lazy {
         intent.getStringExtra(EXTRA_PROFILE_LINK)
-            ?: GoogleSignIn.getLastSignedInAccount(this)?.email
-            ?: com.facebook.Profile.getCurrentProfile()?.linkUri?.toString()
     }
 
     private val photoLink: String? by lazy {
         intent.getStringExtra(EXTRA_PHOTO_LINK)
-            ?: GoogleSignIn.getLastSignedInAccount(this)?.photoUrl?.toString()
-            ?: com.facebook.Profile.getCurrentProfile()?.getProfilePictureUri(200, 200)?.toString()
     }
 
     private val adapter = UsersAdapter()
@@ -108,6 +105,7 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users), UsersView {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         usersViewModel.checkIfLoggedInFacebook()
+        setTitle(R.string.title_search_users)
         initNavView()
         initDrawer()
         initSearchView()
@@ -172,6 +170,7 @@ class UsersActivity : AppCompatActivity(R.layout.activity_users), UsersView {
         val nameTextView = headerView.profileNameTextView
         val emailTextView = headerView.emailTextView
         val avatarImageView = headerView.profileImageView
+        headerView.securityAuthButton.setOnClickListener { startActivity<StorePasswordActivity>() }
         headerView.logoutButton.setOnClickListener {
             GoogleSignIn.getLastSignedInAccount(this)?.let {
                 GoogleSignIn

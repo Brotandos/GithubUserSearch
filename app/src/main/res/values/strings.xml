@@ -13,4 +13,18 @@
     <string name="login_error">Something went wrong while signing in</string>
     <string name="facebook_sign_in_cancelled">Sign in cancelled</string>
     <string name="profile_name_not_found">Profile name not found</string>
+    <string name="password">Enter password</string>
+    <string name="save_password">Save password</string>
+    <string name="security_auth_button">Secured auth</string>
+    <string name="pin_hint">Enter PIN</string>
+    <string name="title_auth">Sign in</string>
+    <string name="title_search_users">Search Github users</string>
+    <string name="title_show_password">Enter PIN</string>
+    <string name="title_store_password">Configure PIN</string>
+    <string name="clear_password">Clear password</string>
+    <string name="touch_finger_scanner">Touch fingerprint scanner</string>
+    <string name="touch_finger_scanner_description">Прикаснитесь пальцем, чтобы увидеть пароль</string>
+    <string name="cancel_fingerprint_dialog">Cancel</string>
+    <string name="title_password">Your encrypted password</string>
+    <string name="open_fingerprint_dialog">Enter by fingerprint</string>
 </resources>

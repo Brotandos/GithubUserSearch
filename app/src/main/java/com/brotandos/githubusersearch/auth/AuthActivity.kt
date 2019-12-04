@@ -5,20 +5,18 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.brotandos.githubusersearch.users.ui.UsersActivity
 import com.brotandos.githubusersearch.R
-import com.brotandos.githubusersearch.common.startActivity
-import com.facebook.AccessToken
+import com.brotandos.githubusersearch.users.ui.UsersActivity
 import com.facebook.CallbackManager
 import com.facebook.FacebookCallback
 import com.facebook.FacebookException
-import com.facebook.Profile as FacebookProfile
 import com.facebook.login.LoginResult
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_auth.facebookSignInButton
 import kotlinx.android.synthetic.main.activity_auth.googleSignInButton
+import com.facebook.Profile as FacebookProfile
 
 private const val GOOGLE_PLUS_REQUEST_CODE = 1
 
@@ -26,17 +24,22 @@ class AuthActivity : AppCompatActivity(R.layout.activity_auth) {
 
     private val facebookCallbackManager = CallbackManager.Factory.create()
 
-    override fun onStart() {
-        super.onStart()
-        GoogleSignIn.getLastSignedInAccount(this)
-            ?: AccessToken.getCurrentAccessToken()
-            ?: return
-
-        onSignedIn()
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setTitle(R.string.title_auth)
+        GoogleSignIn.getLastSignedInAccount(this)?.let {
+            UsersActivity.start(this, it.displayName, it.email, it.photoUrl.toString())
+            return
+        } ?: FacebookProfile.getCurrentProfile()?.let {
+            UsersActivity.start(
+                this,
+                it.name,
+                it.linkUri.toString(),
+                it.getProfilePictureUri(200, 200).toString()
+            )
+            return
+        }
+
         initGoogleSignIn()
         initFacebookSignIn()
     }
@@ -78,7 +81,7 @@ class AuthActivity : AppCompatActivity(R.layout.activity_auth) {
             override fun onSuccess(result: LoginResult?) {
                 val facebookProfile = FacebookProfile.getCurrentProfile()
                 UsersActivity.start(this@AuthActivity,
-                    facebookProfile?.name,
+                    facebookProfile.name,
                     facebookProfile?.linkUri.toString(),
                     facebookProfile?.getProfilePictureUri(200, 200).toString()
                 )
@@ -101,9 +104,4 @@ class AuthActivity : AppCompatActivity(R.layout.activity_auth) {
 
         })
     }
-
-    private fun onSignedIn() = startActivity<UsersActivity>(
-        needToFinishCurrent = true,
-        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-    )
 }
